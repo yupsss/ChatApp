@@ -1,12 +1,14 @@
-
 import styled from "styled-components";
 import {Link} from "react-router-dom";
 import { useState } from "react";
 import {ToastContainer, toast} from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
+import { useNavigate } from 'react-router-dom';
 
 
 const Login = () => {
+
+    const navigate = useNavigate();
 
     const handleChange = (event) =>{
         setValues({ ...values , [event.target.name] : event.target.value});
@@ -16,23 +18,65 @@ const Login = () => {
         event.preventDefault();
         if(handleValidation())
         {
-            alert("submit");
+            const requestOptions = {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(values)
+            };
+            const  funct = async() =>
+            {
+                const response = await fetch('http://localhost:5000/login', requestOptions);
+
+                if(response.status === 200)
+                {
+                    toast.error("login successfull",{
+                        position : "bottom-right",
+                        type : "success",
+                        autoClose : 2000,
+                        theme : "light"
+                    })
+                    console.log(response);
+                    navigate('/home',{ replace: true });
+                }
+
+                else
+                {
+                    const mssg = await response.json();
+                    if(mssg.error === "incorrect password") 
+                    {toast.error("incorrect password",{
+                        position : "bottom-right",
+                        autoClose : 2000,
+                        theme : "colored"
+                    })}
+                    else if(mssg.error === "register first")
+                    {
+                        toast.error("register first",{
+                            position : "bottom-right",
+                            autoClose : 2000,
+                            theme : "colored"
+                        })
+                    }
+                    else
+                    console.log(mssg);
+                }
+            }
+            funct();
         }
     }
 
     const [values , setValues] = useState({
-        username : "",
+        email : "",
         password : "",
     })
 
     const handleValidation = () => {
-        const {password ,username} = values;
+        const {password ,email} = values;
 
         let flag = true;
 
-        if(username === ""){
+        if(email === ""){
             flag = false;
-            toast.error("username required",{
+            toast.error("email required",{
                 position : "bottom-right",
                 autoClose : 2000,
                 theme : "colored"
@@ -44,26 +88,6 @@ const Login = () => {
                 position : "bottom-right",
                 autoClose : 2000,
                 theme : "colored"
-            })
-        }
-
-        if(username !== "" && username.length < 5)
-        {
-            flag = false;
-            toast.error("username length should be atleast 5",{
-                position : "bottom-right",
-                autoClose : 2000,
-                theme : "dark"
-            })
-
-        }
-        if(password!=="" && password.length < 8)
-        {
-            flag = false;
-            toast.error("password length should be atleast 8",{
-                position : "bottom-right",
-                autoClose : 2000,
-                theme : "dark"
             })
         }
         return flag;
@@ -80,9 +104,9 @@ const Login = () => {
                         <h1>chat-app</h1>
                     </div>
                     <input 
-                        type="text" 
-                        placeholder="username" 
-                        name="username" 
+                        type="email" 
+                        placeholder="email" 
+                        name="email" 
                         onChange={(event)=>{handleChange(event)}} 
                     />
                     <input 
@@ -109,7 +133,8 @@ form{
     gap: 10px;
 }
 input{
-    min-width: 22lh;
+    width: 75%;
+    max-width: 400px;
     padding: 15px;
     border: solid 2px black;
     font-size: 20px;

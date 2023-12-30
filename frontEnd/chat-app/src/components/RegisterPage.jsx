@@ -3,14 +3,50 @@ import {Link} from "react-router-dom";
 import { useState } from "react";
 import {ToastContainer, toast} from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
+import { useNavigate } from 'react-router-dom';
 
 const RegisterPage = () => {
+    
+    const navigate = useNavigate();
 
         const handleSubmit = (event) =>{
             event.preventDefault();
             if(handleValidation())
             {
-                alert("submit");
+                const newUser = {"username" : values.username , "email" : values.email , "password" : values.password};
+                const requestOptions = {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newUser)
+                };
+                const  funct = async() =>{
+                    const response = await fetch('http://localhost:5000/register', requestOptions);
+
+                    if(response.status === 200)
+                    {
+                        toast.error("user added successfully",{
+                            position : "bottom-right",
+                            type : "success",
+                            autoClose : 2000,
+                            theme : "light"
+                        })
+                        console.log(response);
+                        navigate('/home',{ replace: true });
+                }
+
+                    else
+                    {
+                        const mssg = await response.json();
+                        if(mssg.error === "duplicate email") 
+                        {toast.error("email already in use",{
+                            position : "bottom-right",
+                            autoClose : 2000,
+                            theme : "colored"
+                        })}
+                        console.log(mssg);
+                    }
+                }
+                funct();
             }
         }
         const handleChange = (event) =>{
@@ -143,7 +179,8 @@ const RegisterPage = () => {
             gap: 10px;
         }
         input{
-            min-width: 22lh;
+            width: 75%;
+            max-width: 400px;
             padding: 15px;
             border: solid 2px black;
             font-size: 20px;
